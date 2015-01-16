@@ -142,11 +142,8 @@ module ChemistryKit
         path = File.join(Dir.getwd, 'evidence', beaker_folder, example_folder, 'failshot.png')
         if File.exist?(path)
           render_section('Failure Screenshot') do |doc|
-             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
-            if ENV['JOB_NAME']
-              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker_folder, example_folder, 'failshot.png')
-            end
-            doc.img(src: path)
+            relative_path = File.join(beaker_folder, example_folder, 'failshot.png')
+            doc.img(src: relative_path)
           end
         end
       end
@@ -158,10 +155,7 @@ module ChemistryKit
         path = File.join(Dir.getwd, 'evidence', beaker_folder, example_folder, 'video.flv')
         if File.exist?(path)
           render_section('Failure Video') do |doc|
-             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
-            if ENV['JOB_NAME']
-              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker_folder, example_folder, 'video.flv')
-            end
+            relative_path = File.join(beaker_folder, example_folder, 'video.flv')
             doc.a(href: path) { doc.text path }
           end
         end
