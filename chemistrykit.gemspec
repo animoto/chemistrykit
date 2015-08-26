@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'thor', '~> 0.17.0'
   s.add_dependency 'rspec', '~> 2.14.1'
+  s.add_dependency 'allure-rspec', '~> 0.5'
   s.add_dependency 'builder', '~> 3.0'
   s.add_dependency 'selenium-webdriver', '~> 2.41'
   s.add_dependency 'rest-client', '~> 1.7.1'

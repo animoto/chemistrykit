@@ -15,17 +15,13 @@ require 'selenium_connect'
 require 'chemistrykit/configuration'
 require 'parallel_tests'
 require 'chemistrykit/parallel_tests/rspec/runner'
-require 'chemistrykit/rspec/j_unit_formatter'
 
-require 'rspec/core/formatters/html_formatter'
-require 'chemistrykit/rspec/html_formatter'
-
-require 'chemistrykit/reporting/html_report_assembler'
 require 'chemistrykit/split_testing/provider_factory'
 
 require 'rubygems'
 require 'logging'
 require 'rspec/logging_helper'
+require 'allure-rspec'
 
 require 'fileutils'
 
@@ -125,19 +121,10 @@ module ChemistryKit
           exit_code = run_rspec beakers
         end
 
-        process_html unless options['parallel']
         exit_code unless options['parallel']
       end
 
       protected
-
-      def process_html
-        File.join(Dir.getwd, 'evidence')
-        results_folder = File.join(Dir.getwd, 'evidence')
-        output_file = File.join(Dir.getwd, 'evidence', 'final_results.html')
-        assembler = ChemistryKit::Reporting::HtmlReportAssembler.new(results_folder, output_file)
-        assembler.assemble
-      end
 
       def override_configs(options, config)
         # TODO: expand this to allow for more overrides as needed
@@ -178,9 +165,13 @@ module ChemistryKit
 
       # rubocop:disable MethodLength
       def rspec_config(config) # Some of these bits work and others don't
+        ::AllureRSpec.configure do |c|
+          c.output_dir = "evidence"
+        end
+
         ::RSpec.configure do |c|
           c.capture_log_messages
-
+          c.include AllureRSpec::Adaptor
           c.treat_symbols_as_metadata_keys_with_true_values = true
           unless options[:all]
             c.filter_run @tags[:filter] unless @tags[:filter].nil?
@@ -253,13 +244,6 @@ module ChemistryKit
               @job.finish passed: true
             end
             @sc.finish
-            log = File.open(File.join(@test_path, 'test_steps.log'), 'w')
-
-            lines  = @log_output.readlines
-            lines.each do |line|
-              log.write(line)
-            end
-            log.close
           end
           c.order = 'random'
           c.default_path = 'beakers'
@@ -267,19 +251,9 @@ module ChemistryKit
           c.output_stream = $stdout
           c.add_formatter 'progress'
 
-          html_log_name = options[:parallel] ? "results_#{options[:parallel]}.html" : 'results_0.html'
-
-          c.add_formatter(ChemistryKit::RSpec::HtmlFormatter, File.join(Dir.getwd, config.reporting.path, html_log_name))
-
           # for rspec-retry
           c.verbose_retry = true # for rspec-retry
           c.default_retry_count = config.retries_on_failure
-
-          # TODO: this is messy... there should be a cleaner way to hook various reporter things.
-          if config.concurrency == 1 || options['parallel']
-            junit_log_name = options[:parallel] ? "junit_#{options[:parallel]}.xml" : 'junit_0.xml'
-            c.add_formatter(ChemistryKit::RSpec::JUnitFormatter, File.join(Dir.getwd, config.reporting.path, junit_log_name))
-          end
         end
       end
       # rubocop:enable MethodLength
