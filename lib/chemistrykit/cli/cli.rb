@@ -15,7 +15,12 @@ require 'selenium_connect'
 require 'chemistrykit/configuration'
 require 'parallel_tests'
 require 'chemistrykit/parallel_tests/rspec/runner'
+require 'chemistrykit/rspec/j_unit_formatter'
 
+require 'rspec/core/formatters/html_formatter'
+require 'chemistrykit/rspec/html_formatter'
+
+require 'chemistrykit/reporting/html_report_assembler'
 require 'chemistrykit/split_testing/provider_factory'
 
 require 'rubygems'
@@ -174,13 +179,9 @@ module ChemistryKit
 
       # rubocop:disable MethodLength
       def rspec_config(config) # Some of these bits work and others don't
-        ::AllureRSpec.configure do |c|
-          c.output_dir = "evidence"
-        end
-
         ::RSpec.configure do |c|
           c.capture_log_messages
-          c.include AllureRSpec::Adaptor
+
           c.treat_symbols_as_metadata_keys_with_true_values = true
           unless options[:all]
             c.filter_run @tags[:filter] unless @tags[:filter].nil?
@@ -253,6 +254,13 @@ module ChemistryKit
               @job.finish passed: true
             end
             @sc.finish
+            log = File.open(File.join(@test_path, 'test_steps.log'), 'w')
+
+            lines  = @log_output.readlines
+            lines.each do |line|
+              log.write(line)
+            end
+            log.close
           end
           c.order = 'random'
           c.default_path = 'beakers'
