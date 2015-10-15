@@ -16,6 +16,8 @@ require 'chemistrykit/configuration'
 require 'parallel_tests'
 require 'chemistrykit/parallel_tests/rspec/runner'
 require 'chemistrykit/rspec/j_unit_formatter'
+require 'chemistrykit/rspec/retry_formatter'
+
 
 require 'rspec/core/formatters/html_formatter'
 require 'chemistrykit/rspec/html_formatter'
@@ -257,9 +259,9 @@ module ChemistryKit
             if example.exception.nil? == false
               @job.finish failed: true, failshot: @config.screenshot_on_fail
               Dir[@job.get_evidence_folder+"/*"].each do |filename|
-                next if File.directory? filename 
+                next if File.directory? filename
                 x.attach_file filename.split('/').last, File.new(filename)
-              end            
+              end
             else
               @job.finish passed: true
             end
@@ -270,6 +272,7 @@ module ChemistryKit
           c.pattern = '**/*_beaker.rb'
           c.output_stream = $stdout
           c.add_formatter 'progress'
+          c.add_formatter(ChemistryKit::RSpec::RetryFormatter)
 
           html_log_name = options[:parallel] ? "results_#{options[:parallel]}.html" : 'results_0.html'
 
