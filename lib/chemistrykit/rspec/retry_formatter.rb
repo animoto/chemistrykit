@@ -19,7 +19,7 @@ module ChemistryKit
       end
 
       def dump_summary(duration, example_count, failure_count, pending_count)
-        return if failure_count = 0
+        return if failure_count == 0
         beakers = @fails.uniq
 
         ckit_cmd = "ckit brew -b #{beakers.join(' ')}"
