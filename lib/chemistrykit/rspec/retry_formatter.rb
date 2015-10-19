@@ -1,7 +1,5 @@
 # Encoding: utf-8
 
-require 'time'
-require 'builder'
 require 'rspec/core/formatters/base_formatter'
 
 # An RSpec formatter for generating a useful failure summary
