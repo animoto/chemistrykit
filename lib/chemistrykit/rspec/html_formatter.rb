@@ -182,7 +182,7 @@ module ChemistryKit
         path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'failshot.png')
         if File.exist?(path)
           render_section('Failure Screenshot') do |doc|
-            relative_path = File.join(beaker_folder, example_folder, 'failshot.png')
+            relative_path = File.join(beaker, example_folder, 'failshot.png')
             doc.img(src: relative_path)
           end
         end
@@ -195,11 +195,11 @@ module ChemistryKit
         path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'video.flv')
         if File.exist?(path)
           render_section('Failure Video') do |doc|
-            relative_path = File.join(beaker_folder, example_folder, 'video.flv')
+            relative_path = File.join(beaker, example_folder, 'video.flv')
             doc.a(href: relative_path) { doc.text relative_path }
           end
         end
-      end    
+      end
 
       def render_log_if_found(example, log)
         beaker = root_group_name_for(example)
