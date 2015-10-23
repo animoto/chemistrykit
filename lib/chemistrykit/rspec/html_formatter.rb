@@ -180,6 +180,7 @@ module ChemistryKit
         example_folder = slugify(beaker + '_' + example.description)
 
         path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'failshot.png')
+        puts "#{path} exists== #{File.exists?(path)} at #{Time.now}"
         if File.exist?(path)
           render_section('Failure Screenshot') do |doc|
             relative_path = File.join(beaker, example_folder, 'failshot.png')
