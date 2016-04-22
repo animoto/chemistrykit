@@ -126,7 +126,8 @@ module ChemistryKit
         end
 
         ::RSpec.configure do |c|
-          c.capture_log_messages
+          log = Logging.logger['test steps']
+          c.capture_log_messages          
 
           c.include AllureRSpec::Adaptor
           c.treat_symbols_as_metadata_keys_with_true_values = true
@@ -159,6 +160,10 @@ module ChemistryKit
             test_path      = File.join(Dir.getwd, sc_config[:log])
             FileUtils.rm_rf(test_path) if File.exists?(test_path)
             Dir.mkdir test_path
+
+            log.add_appenders(
+              Logging.appenders.file(test_path + '/test_steps.log')
+            )
 
             # set the tags and permissions if sauce
             if sc_config[:host] == 'saucelabs' || sc_config[:host] == 'appium'
@@ -220,7 +225,6 @@ module ChemistryKit
             c.filter_run_excluding @tags[:exclusion_filter] unless @tags[:exclusion_filter].nil?
           end
 
-          c.capture_log_messages
           c.treat_symbols_as_metadata_keys_with_true_values = true
           c.order                                           = 'random'
           c.output_stream                                   = $stdout
