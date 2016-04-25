@@ -21,6 +21,7 @@ gem 'parallel_split_test', git: 'https://github.com/animoto/parallel_split_test.
 gem 'allure-rspec', git: 'https://github.com/animoto/allure-rspec.git', branch: 'rspec-2'
 gem 'compass'
 gem 'zurb-foundation'
+gem 'logging', '2.0.0'
 
 # Specify dependencies in chemistrykit.gemspec
 gemspec
