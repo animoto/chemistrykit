@@ -31,5 +31,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'nokogiri', '~> 1.5'
   s.add_dependency 'syntax'
   s.add_dependency 'pygments.rb', '~> 0.5.2'
-  s.add_dependency 'logging'
+  s.add_dependency 'logging', '~> 2.0.0'
+  s.add_dependency 'fileutils'
 end
