@@ -162,7 +162,8 @@ module ChemistryKit
             Dir.mkdir test_path
 
             log.add_appenders(
-              Logging.appenders.file(test_path + '/test_steps.log')
+              Logging.appenders.stdout,
+	      Logging.appenders.file(test_path + '/test_steps.log')
             )
 
             # set the tags and permissions if sauce
