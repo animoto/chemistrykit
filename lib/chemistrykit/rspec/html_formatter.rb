@@ -30,7 +30,7 @@ module ChemistryKit
         unless @testcases_data[beaker][1] == ''
           @output_html << build_fragment do |doc|
             status = @testcases_data[beaker][0]
-            show = status == 'passing' ? 'show' : ''
+            show   = status == 'passing' ? 'show' : ''
             doc.div(class: "row example-group #{status} #{show}") do
               doc.div(class: 'large-12 columns') do
                 doc.h3 do
@@ -56,22 +56,20 @@ module ChemistryKit
 
       def example_passed(example)
         super(example)
-        beaker = root_group_name_for(example)
-        example_folder = slugify(beaker + '_' + example.description)
-        log_path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'test_steps.log')
-        if (File.exist?(log_path) && !File.zero?(log_path))
-          @testcases_data[beaker][1] += render_example('passing', example) do |doc|
-            doc.a(href: log_path) { doc.text 'Test Steps' }
+        beaker                     = root_group_name_for(example)
+        example_folder             = slugify(beaker + '_' + example.description)
+        log_path                   = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'test_steps.log')
+        @testcases_data[beaker][1] += render_example('passing', example) do |doc|
+          doc << extra_content_block do |section|
+            section << render_log_if_found(example, 'test_steps.log')
           end
-        else
-          @testcases_data[beaker][1] += render_example('passing', example) {}
         end
       end
 
       def example_pending(example)
         super(example)
-          beaker = root_group_name_for(example)
-          @testcases_data[beaker][1] += render_example('pending', example) do |doc|
+        beaker                     = root_group_name_for(example)
+        @testcases_data[beaker][1] += render_example('pending', example) do |doc|
           doc.div(class: 'row exception') do
             doc.div(class: 'large-12 columns') do
               doc.pre do
@@ -84,8 +82,8 @@ module ChemistryKit
 
       def example_failed(example)
         super(example)
-        beaker = root_group_name_for(example)
-        exception = example.metadata[:execution_result][:exception]
+        beaker                     = root_group_name_for(example)
+        exception                  = example.metadata[:execution_result][:exception]
         @testcases_data[beaker][0] = 'failing'
         @testcases_data[beaker][1] += render_example('failing', example) do |doc|
           doc.div(class: 'row exception') do
@@ -107,16 +105,16 @@ module ChemistryKit
 
       def dump_summary(duration, example_count, failure_count, pending_count)
         unless example_count == 0
-          output = build_fragment do |doc|
+          output         = build_fragment do |doc|
             doc.div(
-              class: 'results',
-              'data-count' => example_count.to_s,
-              'data-duration' => duration.to_s,
-              'data-failures' => failure_count.to_s,
-              'data-pendings' => pending_count.to_s
-              ) { doc << @output_html }
+                class:          'results',
+                'data-count'    => example_count.to_s,
+                'data-duration' => duration.to_s,
+                'data-failures' => failure_count.to_s,
+                'data-pendings' => pending_count.to_s
+            ) { doc << @output_html }
           end
-          results_path = @output.path.split(".html").first + '_' + @process.to_s + ".html"
+          results_path   = @output.path.split(".html").first + '_' + @process.to_s + ".html"
           results_output = File.exists?(results_path) ? File.open(results_path, "w") : File.new(results_path, "w")
           results_output.puts output
           #@output.puts output
@@ -126,7 +124,7 @@ module ChemistryKit
       # TODO: put the right methods private, or better yet, pull this stuff out into its own
       # set of classes
       def root_group_name_for(example)
-        group_hierarchy = []
+        group_hierarchy       = []
         current_example_group = example.metadata[:example_group]
         until current_example_group.nil?
           group_hierarchy.unshift current_example_group
@@ -135,21 +133,32 @@ module ChemistryKit
         slugify group_hierarchy.first[:description]
       end
 
-      def render_extra_content(example)
+      def render_extra_content(example, log_list = nil)
+        log_list ||= %w{test_steps.log
+                        server.log
+                        chromedriver.log
+                        firefox.log
+                        sauce_job.log}
+
+        extra_content_block do |doc|
+          doc << render_failshot_if_found(example)
+          doc << render_video_if_found(example)
+          doc << render_stack_trace(example)
+          log_list.each do |log_name|
+            doc << render_log_if_found(example, log_name)
+          end
+          doc << render_dom_html_if_found(example)
+        end
+      end
+
+      def extra_content_block(&block)
+        raise unless block_given?
+
         build_fragment do |doc|
           doc.div(class: 'row extra-content') do
             doc.div(class: 'large-12 columns') do
               doc.div(class: 'section-container auto', 'data-section' => '') do
-                doc << render_failshot_if_found(example)
-                doc << render_video_if_found(example)
-                doc << render_stack_trace(example)
-                doc << render_log_if_found(example, 'test_steps.log')
-                doc << render_log_if_found(example, 'server.log')
-                doc << render_log_if_found(example, 'chromedriver.log')
-                doc << render_log_if_found(example, 'firefox.log')
-                doc << render_log_if_found(example, 'sauce_job.log')
-
-                doc << render_dom_html_if_found(example)
+                block.call(doc)
               end
             end
           end
@@ -158,11 +167,11 @@ module ChemistryKit
 
       def render_dom_html_if_found(example)
         # TODO: pull out the common code for checking if the log file exists
-        beaker = root_group_name_for(example)
+        beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
-        paths = Dir.glob(File.join(Dir.getwd, 'evidence', beaker, example_folder, 'dom_*.html'))
-        number = 0
-        sections = ''
+        paths          = Dir.glob(File.join(Dir.getwd, 'evidence', beaker, example_folder, 'dom_*.html'))
+        number         = 0
+        sections       = ''
         paths.each do |path|
           if File.exist?(path)
             sections << render_section("Dom HTML #{number}") do |doc|
@@ -176,13 +185,13 @@ module ChemistryKit
 
       # TODO: replace the section id with a uuid or something....
       def render_failshot_if_found(example)
-        beaker = root_group_name_for(example)
+        beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
 
         path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'failshot.png')
         if File.exist?(path)
           render_section('Failure Screenshot') do |doc|
-             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
+            # if this is a jenkins job this variable is set and we can use it to get the right path to the images
             if ENV['JOB_NAME']
               path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker, example_folder, 'failshot.png')
             end
@@ -192,25 +201,25 @@ module ChemistryKit
       end
 
       def render_video_if_found(example)
-        beaker = root_group_name_for(example)
+        beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
 
         path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'video.flv')
         if File.exist?(path)
           render_section('Failure Video') do |doc|
-             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
+            # if this is a jenkins job this variable is set and we can use it to get the right path to the images
             if ENV['JOB_NAME']
               path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker, example_folder, 'video.flv')
             end
             doc.a(href: path) { doc.text path }
           end
         end
-      end    
+      end
 
       def render_log_if_found(example, log)
-        beaker = root_group_name_for(example)
+        beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
-        log_path = File.join(Dir.getwd, 'evidence', beaker, example_folder, log)
+        log_path       = File.join(Dir.getwd, 'evidence', beaker, example_folder, log)
         if File.exist?(log_path)
           render_section(log.capitalize) do |doc|
             doc.pre do
@@ -270,7 +279,7 @@ module ChemistryKit
                 end
                 doc.div(class: 'large-3 columns text-right') do
                   doc.p { doc.text time_str }
-                  end
+                end
               end
               doc.div(class: 'row example-body') do
                 doc.div(class: 'large-12 columns') { yield doc }
@@ -287,6 +296,7 @@ module ChemistryKit
         end
         final.to_html
       end
+
     end
   end
 end
