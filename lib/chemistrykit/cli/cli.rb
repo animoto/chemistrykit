@@ -61,7 +61,7 @@ module ChemistryKit
 
         # get those beakers that should be executed
         beakers = options['beakers'] ? options['beakers'] : Dir.glob(File.join(Dir.getwd, 'beakers/**/*')).select { |file| !File.directory?(file) }
-        
+
         # if tags are explicity defined, apply them to all beakers
         setup_tags(options['tag'])
 
@@ -127,7 +127,7 @@ module ChemistryKit
 
         ::RSpec.configure do |c|
           log = Logging.logger['test steps']
-          c.capture_log_messages          
+          c.capture_log_messages
 
           c.include AllureRSpec::Adaptor
           c.treat_symbols_as_metadata_keys_with_true_values = true
@@ -149,22 +149,28 @@ module ChemistryKit
             sc_config       = @config.selenium_connect.dup
             sc_config[:log] += "/#{beaker_name}"
             beaker_path     = File.join(Dir.getwd, sc_config[:log])
-            
+
             # Current parallelization causes mkdir to still fail sometimes
             begin
               Dir.mkdir beaker_path unless File.exists?(beaker_path)
             rescue Errno::EEXIST
             end
-            
+
             sc_config[:log] += "/#{test_name}"
-            test_path      = File.join(Dir.getwd, sc_config[:log])
+            test_path       = File.join(Dir.getwd, sc_config[:log])
             FileUtils.rm_rf(test_path) if File.exists?(test_path)
             Dir.mkdir test_path
 
             log.add_appenders(
-              Logging.appenders.stdout,
-	      Logging.appenders.file(test_path + '/test_steps.log')
+                Logging.appenders.stdout(
+                    :layout => Logging.layouts.pattern(pattern:"%x %c: %m\n"
+                    )
+                ),
+                Logging.appenders.file('test_log',
+                                       :filename => test_path + '/test_steps.log',
+                                       :layout   => Logging.layouts.pattern(pattern:"%m\n"))
             )
+            Logging.ndc.push(test_name)
 
             # set the tags and permissions if sauce
             if sc_config[:host] == 'saucelabs' || sc_config[:host] == 'appium'
@@ -195,6 +201,7 @@ module ChemistryKit
             # make the formula lab available
             @formula_lab       = ChemistryKit::Formula::FormulaLab.new @driver, repo, File.join(Dir.getwd, 'formulas')
             example.run
+            Logging.ndc.pop
           end
           c.before(:each) do
             if @config.basic_auth
@@ -235,7 +242,7 @@ module ChemistryKit
 
           c.add_formatter 'progress'
           c.add_formatter(ChemistryKit::RSpec::RetryFormatter)
-          
+
           html_log_name = "results.html"
           Dir.glob(File.join(Dir.getwd, config.reporting.path, "results*")).each { |f| File.delete(f) }
           c.add_formatter(ChemistryKit::RSpec::HtmlFormatter, File.join(Dir.getwd, config.reporting.path, html_log_name))
