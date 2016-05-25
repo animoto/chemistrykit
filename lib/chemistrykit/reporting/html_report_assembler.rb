@@ -23,7 +23,7 @@ module ChemistryKit
         junit_dummy = File.join(@results_path, 'junit.xml')
         File.delete(junit_dummy)
 
-        junit_files = Dir.glob(File.join(@results_path, 'junit_*.xml'))        
+        junit_files = Dir.glob(File.join(@results_path, 'junit_*.xml'))
         junit_files.each do |file|
           doc = Nokogiri.XML(open(file))
           total_time = 0
@@ -106,7 +106,7 @@ module ChemistryKit
             doc.style(type: 'text/css') do
               doc.text load_from_file(File.join(File.dirname(File.expand_path(__FILE__)), '../../../report/', 'stylesheets', 'app.css'))
             end
-            doc.link(href: 'http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css', rel: 'stylesheet')
+            doc.link(href: 'https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css', rel: 'stylesheet')
             doc.script do
               doc.text load_from_file(File.join(File.dirname(File.expand_path(__FILE__)), '../../../report/', 'javascripts', 'vendor', 'custom.modernizr.js'))
             end
