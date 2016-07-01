@@ -29,6 +29,7 @@ require 'logging'
 require 'rspec/logging_helper'
 
 require 'fileutils'
+require 'rbconfig'
 
 module ChemistryKit
   module CLI
@@ -65,6 +66,9 @@ module ChemistryKit
         # if tags are explicity defined, apply them to all beakers
         setup_tags(options['tag'])
 
+        # open a tunnel if sauce connect is specified
+        tunnel_id = tunnel(config)
+
         # configure rspec
         rspec_config(config)
 
@@ -74,6 +78,9 @@ module ChemistryKit
         else
           exit_code = run_rspec beakers
         end
+      
+        # close tunnel if sauce connect is specified
+        kill_tunnel(tunnel_id) unless tunnel_id.nil?
 
         process_html
         exit_code
@@ -117,6 +124,48 @@ module ChemistryKit
           @tags[filter_type]       ||= {}
           @tags[filter_type][name] = value
         end unless selected_tags.nil?
+      end
+    
+      def tunnel(config)
+        sc_config = config.selenium_connect.dup
+
+        if sc_config[:sauce_opts][:tunnel]
+          local_path = File.join(File.dirname(File.expand_path(__FILE__)))
+
+          # Determine binary to run based on OS (Mac vs. Linux)
+          host_os = RbConfig::CONFIG['host_os']
+          sc_bin_path = case host_os
+            when /darwin|mac os/
+              local_path + '/../../../bin/sc-mac'
+            when /linux/
+              local_path + '/../../../bin/sc-linux'
+            else
+              raise "incompatible os: #{host_os.inspect}"
+          end
+          tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
+          puts tunnel_id
+          sc_path = "'" + sc_bin_path + "'" + " -i #{tunnel_id} -f #{local_path}/sauce.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
+
+          sauce_connect = spawn sc_path
+
+          start_time = Time.now
+
+          puts "Checking for sc touching file sauce.connect"
+          until File.exists?( "#{local_path}/sauce.connect" )
+            # Timeout: 60sec
+            raise "Timed out attempting to start sauce_connect tunnel. Aborting." if Time.now - start_time > 60
+            puts "Untouched file sauce.connect"
+            sleep(2)
+          end
+          puts "Touched file sauce.connect. Continuing with tests."
+          sc_config[:sauce_opts][:tunnel_identifier] = tunnel_id
+          sauce_connect
+        end
+      end
+
+      def kill_tunnel(tunnel_id)
+        puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_id}"
+        Process.kill("INT", tunnel_id)
       end
 
       # rubocop:disable MethodLength
@@ -186,7 +235,6 @@ module ChemistryKit
               else
                 sc_config[:sauce_opts] = sauce_opts unless sauce_opts.empty?
               end
-
             end
 
             # configure and start sc
