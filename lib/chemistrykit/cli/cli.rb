@@ -143,7 +143,6 @@ module ChemistryKit
               raise "incompatible os: #{host_os.inspect}"
           end
           tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
-          puts tunnel_id
           sc_path = "'" + sc_bin_path + "'" + " -i #{tunnel_id} -f #{local_path}/sauce.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
 
           sauce_connect = spawn sc_path
