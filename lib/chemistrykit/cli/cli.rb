@@ -143,20 +143,20 @@ module ChemistryKit
               raise "incompatible os: #{host_os.inspect}"
           end
           tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
-          sc_path = "'" + sc_bin_path + "'" + " -i #{tunnel_id} -f #{local_path}/sauce.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
+          sc_path = "'" + sc_bin_path + "'" + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
 
           sauce_connect = spawn sc_path
 
           start_time = Time.now
 
-          puts "Checking for sc touching file sauce.connect"
-          until File.exists?( "#{local_path}/sauce.connect" )
+          puts "Checking for sc touching file #{tunnel_id}.connect"
+          until File.exists?( "#{local_path}/#{tunnel_id}.connect" )
             # Timeout: 60sec
             raise "Timed out attempting to start sauce_connect tunnel. Aborting." if Time.now - start_time > 60
-            puts "Untouched file sauce.connect"
+            puts "Untouched file #{tunnel_id}.connect"
             sleep(2)
           end
-          puts "Touched file sauce.connect. Continuing with tests."
+          puts "Touched file #{tunnel_id}.connect. Continuing with tests."
           sc_config[:sauce_opts][:tunnel_identifier] = tunnel_id
           sauce_connect
         end
@@ -164,7 +164,7 @@ module ChemistryKit
 
       def kill_tunnel(tunnel_id)
         puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_id}"
-        Process.kill("INT", tunnel_id)
+        Process.kill("SIGINT", tunnel_id)
       end
 
       # rubocop:disable MethodLength
