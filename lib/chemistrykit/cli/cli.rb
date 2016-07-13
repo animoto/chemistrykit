@@ -68,7 +68,7 @@ module ChemistryKit
 
         # open a tunnel if sauce connect is specified
         tunnel_id = tunnel(config)
-
+        
         # configure rspec
         rspec_config(config)
 
@@ -138,12 +138,13 @@ module ChemistryKit
             when /darwin|mac os/
               local_path + '/../../../bin/sc-mac'
             when /linux/
+
               local_path + '/../../../bin/sc-linux'
             else
               raise "incompatible os: #{host_os.inspect}"
           end
           tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
-          sc_path = "'" + sc_bin_path + "'" + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
+          sc_path = sc_bin_path + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
 
           sauce_connect = spawn sc_path
 
