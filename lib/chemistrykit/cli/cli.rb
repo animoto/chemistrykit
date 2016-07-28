@@ -128,6 +128,7 @@ module ChemistryKit
     
       def tunnel(config)
         sc_config = config.selenium_connect.dup
+        return unless sc_config[:sauce_opts]
 
         if sc_config[:sauce_opts][:tunnel]
           local_path = File.join(File.dirname(File.expand_path(__FILE__)))
