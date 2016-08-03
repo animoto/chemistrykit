@@ -7,7 +7,7 @@ module ChemistryKit
     class Reporting
 
       def path
-        'evidence'
+        'test_output'
       end
     end
   end

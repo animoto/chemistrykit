@@ -58,7 +58,7 @@ module ChemistryKit
         super(example)
         beaker                     = root_group_name_for(example)
         example_folder             = slugify(beaker + '_' + example.description)
-        log_path                   = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'test_steps.log')
+        log_path                   = File.join(Dir.getwd, 'test_output', beaker, example_folder, 'test_steps.log')
         @testcases_data[beaker][1] += render_example('passing', example) do |doc|
           doc << extra_content_block do |section|
             section << render_log_if_found(example, 'test_steps.log')
@@ -169,7 +169,7 @@ module ChemistryKit
         # TODO: pull out the common code for checking if the log file exists
         beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
-        paths          = Dir.glob(File.join(Dir.getwd, 'evidence', beaker, example_folder, 'dom_*.html'))
+        paths          = Dir.glob(File.join(Dir.getwd, 'test_output', beaker, example_folder, 'dom_*.html'))
         number         = 0
         sections       = ''
         paths.each do |path|
@@ -188,12 +188,12 @@ module ChemistryKit
         beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
 
-        path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'failshot.png')
+        path = File.join(Dir.getwd, 'test_output', beaker, example_folder, 'failshot.png')
         if File.exist?(path)
           render_section('Failure Screenshot') do |doc|
             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
             if ENV['JOB_NAME']
-              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker, example_folder, 'failshot.png')
+              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'output', beaker, example_folder, 'failshot.png')
             end
             doc.img(src: path)
           end
@@ -204,12 +204,12 @@ module ChemistryKit
         beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
 
-        path = File.join(Dir.getwd, 'evidence', beaker, example_folder, 'video.flv')
+        path = File.join(Dir.getwd, 'test_output', beaker, example_folder, 'video.flv')
         if File.exist?(path)
           render_section('Failure Video') do |doc|
             # if this is a jenkins job this variable is set and we can use it to get the right path to the images
             if ENV['JOB_NAME']
-              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'evidence', beaker, example_folder, 'video.flv')
+              path = File.join("/job/#{ENV['JOB_NAME']}/ws", 'test_output', beaker, example_folder, 'video.flv')
             end
             doc.a(href: path) { doc.text path }
           end
@@ -219,7 +219,7 @@ module ChemistryKit
       def render_log_if_found(example, log)
         beaker         = root_group_name_for(example)
         example_folder = slugify(beaker + '_' + example.description)
-        log_path       = File.join(Dir.getwd, 'evidence', beaker, example_folder, log)
+        log_path       = File.join(Dir.getwd, 'test_output', beaker, example_folder, log)
         if File.exist?(log_path)
           render_section(log.capitalize) do |doc|
             doc.pre do

@@ -89,8 +89,8 @@ module ChemistryKit
       protected
 
       def process_html
-        results_folder = File.join(Dir.getwd, 'evidence')
-        output_file    = File.join(Dir.getwd, 'evidence', 'final_results.html')
+        results_folder = File.join(Dir.getwd, 'test_output')
+        output_file    = File.join(Dir.getwd, 'test_output', 'final_results.html')
         assembler      = ChemistryKit::Reporting::HtmlReportAssembler.new(results_folder, output_file)
         assembler.assemble
       end
