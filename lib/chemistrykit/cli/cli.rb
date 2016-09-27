@@ -139,25 +139,40 @@ module ChemistryKit
             when /darwin|mac os/
               local_path + '/../../../bin/sc-mac'
             when /linux/
-
               local_path + '/../../../bin/sc-linux'
             else
               raise "incompatible os: #{host_os.inspect}"
           end
-          tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
-          sc_path = sc_bin_path + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
 
-          sauce_connect = spawn sc_path
+          # Attempt to sauce connect. 3 retries
+          retries = 0
+          connected = false
+          while retries < 3 and connected == false
+            puts "SAUCE CONNECT: ATTEMPT #{retries+1}"
+            tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
+            sc_path = sc_bin_path + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
+            sauce_connect = spawn sc_path
 
-          start_time = Time.now
+            start_time = Time.now
 
-          puts "Checking for sc touching file #{tunnel_id}.connect"
-          until File.exists?( "#{local_path}/#{tunnel_id}.connect" )
-            # Timeout: 60sec
-            raise "Timed out attempting to start sauce_connect tunnel. Aborting." if Time.now - start_time > 60
-            puts "Untouched file #{tunnel_id}.connect"
-            sleep(2)
+            puts "Checking for sc touching file #{tunnel_id}.connect"
+            until File.exists?("#{local_path}/#{tunnel_id}.connect")
+              # Timeout: 60sec
+              if Time.now - start_time > 60
+                kill_tunnel(sauce_connect)
+                retries += 1
+                break
+              else
+                puts "Untouched file #{tunnel_id}.connect"
+                sleep(2)
+              end
+            end
+            connected = true if File.exists?("#{local_path}/#{tunnel_id}.connect")
           end
+
+          # Raise error if sauce_connect could not connect after 3 retries
+          raise "Timed out attempting to start sauce_connect tunnel. Aborting." if retries >= 3
+
           puts "Touched file #{tunnel_id}.connect. Continuing with tests."
           sc_config[:sauce_opts][:tunnel_identifier] = tunnel_id
           sauce_connect
