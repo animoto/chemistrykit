@@ -9,7 +9,7 @@ describe ChemistryKit::Configuration do
   VALID_CONCURRENCY = 1
   VALID_RETRIES_ON_FAILURE = 1
   VALID_CONFIG_FILE = 'config.yaml'
-  VALID_REPORTING_PATH = 'evidence'
+  VALID_REPORTING_PATH = 'test_output'
 
   before(:each) do
     @valid_selenium_connect_hash = { log: 'evidence', host: 'localhost' }

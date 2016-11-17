@@ -21,7 +21,7 @@ module ChemistryKit
       def assemble
         # First get total duration from jUnit times
         junit_dummy = File.join(@results_path, 'junit.xml')
-        File.delete(junit_dummy)
+        File.delete(junit_dummy) if File.exists?(junit_dummy)
 
         junit_files = Dir.glob(File.join(@results_path, 'junit_*.xml'))
         junit_files.each do |file|

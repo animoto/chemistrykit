@@ -13,6 +13,7 @@ Background:
     describe "Basic Auth", :depth => 'shallow' do
       it "works without providing credentials in the URL" do
         @driver.get ENV['BASE_URL']
+        @driver.find_elements({css: 'a'}).size.should_not be_zero
       end
     end
     """
@@ -37,7 +38,7 @@ Scenario: Pre-load HTTP before each test without the http_path set
         password:   'admin'
     """
   When I run `bundle exec ckit brew`
-  Then the stdout should contain "1 example, 0 failures"
+  Then the stdout should contain "1 example, 1 failure"
 
 Scenario: Works without Basic Auth
   And a file named "config.yaml" with:
