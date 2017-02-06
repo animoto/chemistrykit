@@ -5,7 +5,7 @@ require 'chemistrykit/config/reporting'
 
 describe ChemistryKit::Config::Reporting do
 
-  VALID_REPORTS_PATH = 'evidence'
+  VALID_REPORTS_PATH = 'test_output'
 
   before(:each) do
     @reporting =  ChemistryKit::Config::Reporting.new
