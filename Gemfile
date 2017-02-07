@@ -25,9 +25,9 @@ gem 'logging', '2.0.0'
 ###############################################################
 # selenium-connect gems                                       #
 ###############################################################
-gem 'selenium-connect', git: 'https://github.com/animoto/selenium-connect.git', branch: 'geckodriver'
+gem 'selenium-connect', git: 'https://github.com/animoto/selenium-connect.git', branch: 'develop'
 gem 'net-http-persistent', '2.9.4'
-gem 'selenium-webdriver', '3.0.1', git: 'git@github.com:animoto/selenium.git'
+gem 'selenium-webdriver', '~> 3.0.1'
 gem 'appium_lib', git: 'https://github.com/KazuCocoa/ruby_lib', branch: 'update_gems'
 gem 'sauce_whisk', git: 'git@github.com:animoto/sauce_whisk'
 
