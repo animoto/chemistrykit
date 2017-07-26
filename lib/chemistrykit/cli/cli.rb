@@ -74,6 +74,7 @@ module ChemistryKit
 
         # based on concurrency parameter run tests
         if config.concurrency > 1
+	  config.selenium_connect[:browserstack_opts][:build] = "TSW #{Time.now}"
           exit_code = run_parallel beakers, config.concurrency
         else
           exit_code = run_rspec beakers
