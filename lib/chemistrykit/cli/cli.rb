@@ -68,17 +68,18 @@ module ChemistryKit
 
         # open a tunnel if sauce connect is specified
         tunnel_id = tunnel(config)
-        
+
         # configure rspec
         rspec_config(config)
 
         # based on concurrency parameter run tests
         if config.concurrency > 1
+	        config.selenium_connect[:browserstack_opts][:build] = "TSW #{Time.now}" unless config.selenium_connect[:browserstack_opts].nil?
           exit_code = run_parallel beakers, config.concurrency
         else
           exit_code = run_rspec beakers
         end
-      
+
         # close tunnel if sauce connect is specified
         kill_tunnel(tunnel_id) unless tunnel_id.nil?
 
@@ -125,63 +126,83 @@ module ChemistryKit
           @tags[filter_type][name] = value
         end unless selected_tags.nil?
       end
-    
+
       def tunnel(config)
         sc_config = config.selenium_connect.dup
-        return unless sc_config[:sauce_opts]
+        if sc_config[:sauce_opts]
+          if sc_config[:sauce_opts][:tunnel]
+            local_path = File.join(File.dirname(File.expand_path(__FILE__)))
 
-        if sc_config[:sauce_opts][:tunnel]
-          local_path = File.join(File.dirname(File.expand_path(__FILE__)))
-
-          # Determine binary to run based on OS (Mac vs. Linux)
-          host_os = RbConfig::CONFIG['host_os']
-          sc_bin_path = case host_os
-            when /darwin|mac os/
-              local_path + '/../../../bin/sc-mac'
-            when /linux/
-              local_path + '/../../../bin/sc-linux'
-            else
-              raise "incompatible os: #{host_os.inspect}"
-          end
-
-          # Attempt to sauce connect. 3 retries
-          retries = 0
-          connected = false
-          while retries < 3 and connected == false
-            puts "SAUCE CONNECT: ATTEMPT #{retries+1}"
-            tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
-            sc_path = sc_bin_path + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
-            sauce_connect = spawn sc_path
-
-            start_time = Time.now
-
-            puts "Checking for sc touching file #{tunnel_id}.connect"
-            until File.exists?("#{local_path}/#{tunnel_id}.connect")
-              # Timeout: 60sec
-              if Time.now - start_time > 60
-                kill_tunnel(sauce_connect)
-                retries += 1
-                break
+            # Determine binary to run based on OS (Mac vs. Linux)
+            host_os = RbConfig::CONFIG['host_os']
+            sc_bin_path = case host_os
+              when /darwin|mac os/
+                local_path + '/../../../bin/sc-mac'
+              when /linux/
+                local_path + '/../../../bin/sc-linux'
               else
-                puts "Untouched file #{tunnel_id}.connect"
-                sleep(2)
-              end
+                raise "incompatible os: #{host_os.inspect}"
             end
-            connected = true if File.exists?("#{local_path}/#{tunnel_id}.connect")
+
+            # Attempt to sauce connect. 3 retries
+            retries = 0
+            connected = false
+            while retries < 3 and connected == false
+              puts "SAUCE CONNECT: ATTEMPT #{retries+1}"
+              tunnel_id = sc_config[:sauce_opts][:tunnel_identifier].nil? ? SecureRandom.uuid : sc_config[:sauce_opts][:tunnel_identifier]
+              sc_path = sc_bin_path + " -i #{tunnel_id} -f #{local_path}/#{tunnel_id}.connect -u #{sc_config[:sauce_username]} -k #{sc_config[:sauce_api_key]}"
+              sauce_connect = spawn sc_path
+
+              start_time = Time.now
+
+              puts "Checking for sc touching file #{tunnel_id}.connect"
+              until File.exists?("#{local_path}/#{tunnel_id}.connect")
+                # Timeout: 60sec
+                if Time.now - start_time > 60
+                  kill_tunnel(sauce_connect)
+                  retries += 1
+                  break
+                else
+                  puts "Untouched file #{tunnel_id}.connect"
+                  sleep(2)
+                end
+              end
+              connected = true if File.exists?("#{local_path}/#{tunnel_id}.connect")
+            end
+
+            # Raise error if sauce_connect could not connect after 3 retries
+            raise "Timed out attempting to start sauce_connect tunnel. Aborting." if retries >= 3
+
+            puts "Touched file #{tunnel_id}.connect. Continuing with tests."
+            sc_config[:sauce_opts][:tunnel_identifier] = tunnel_id
+            sauce_connect
           end
+        elsif sc_config[:browserstack_opts]
+          if sc_config[:browserstack_opts][:tunnel]
+            require 'browserstack/local'
 
-          # Raise error if sauce_connect could not connect after 3 retries
-          raise "Timed out attempting to start sauce_connect tunnel. Aborting." if retries >= 3
+            #creates an instance of Local
+            bs_local = BrowserStack::Local.new
+            bs_local_args = { "key" => sc_config[:browserstack_api_key] }
 
-          puts "Touched file #{tunnel_id}.connect. Continuing with tests."
-          sc_config[:sauce_opts][:tunnel_identifier] = tunnel_id
-          sauce_connect
+            #starts the Local instance with the required arguments
+            bs_local.start(bs_local_args)
+
+            #check if BrowserStack local instance is running
+            puts bs_local.isRunning
+            bs_local
+          end
         end
       end
 
       def kill_tunnel(tunnel_id)
-        puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_id}"
-        Process.kill("SIGINT", tunnel_id)
+        if tunnel_id.class == Fixnum
+          puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_id}"
+          Process.kill("SIGINT", tunnel_id)
+        else
+          # for now if browserstack, tunnel_id is actually the bs tunnel instance
+          tunnel_id.stop
+        end
       end
 
       # rubocop:disable MethodLength

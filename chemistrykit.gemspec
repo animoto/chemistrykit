@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'selenium-webdriver', '~> 3.0'
   s.add_dependency 'rest-client', '~> 1.7'
   s.add_dependency 'parallel_split_test'
-  s.add_dependency 'parallel', '~> 0.7.0'
+  s.add_dependency 'parallel', '~> 1.3.0'
   s.add_dependency 'rspec-retry', '~> 0.2.1'
   s.add_dependency 'nokogiri', '~> 1.5'
   s.add_dependency 'syntax'
