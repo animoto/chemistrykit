@@ -224,6 +224,8 @@ module ChemistryKit
           c.before(:all) do
             @config         = config
             ENV['BASE_URL'] = @config.base_url # assign base url to env variable for formulas
+            selenium_connect = config.selenium_connect.dup
+            ENV['RUNNER'] = selenium_connect[:host] ? selenium_connect[:host] : ''
           end
 
           c.around(:each) do |example|
