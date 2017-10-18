@@ -98,6 +98,7 @@ module ChemistryKit
 
       def pass_params
         options['params'].each_pair do |key, value|
+          puts key + " => " + value
           ENV[key] = value
         end
       end
@@ -225,7 +226,7 @@ module ChemistryKit
             @config         = config
             ENV['BASE_URL'] = @config.base_url # assign base url to env variable for formulas
             selenium_connect = config.selenium_connect.dup
-            ENV['RUNNER'] = selenium_connect[:host] ? selenium_connect[:host] : ''
+            ENV['RUNNER'] = selenium_connect[:host] || ''
           end
 
           c.around(:each) do |example|
