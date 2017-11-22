@@ -41,7 +41,7 @@ class SeleniumConnect
           config.browserstack_opts[attr] = config.send attr
         end
 
-        config.browserstack_opts.delete(:chromeOptions) if config.browser = 'firefox'
+        config.browserstack_opts.delete(:chromeOptions) if config.browser == 'firefox'
 
         client = Selenium::WebDriver::Remote::Http::Persistent.new
         driver = Selenium::WebDriver.for(
