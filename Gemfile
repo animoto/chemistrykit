@@ -24,7 +24,7 @@ gem 'logging', '2.0.0'
 ###############################################################
 # selenium-connect gems                                       #
 ###############################################################
-gem 'net-http-persistent', '2.9.4'
+gem 'net-http-persistent'
 gem 'selenium-webdriver', '3.5.2'
 #gem 'appium_lib', git: 'https://github.com/KazuCocoa/ruby_lib', branch: 'update_gems'
 #gem 'sauce_whisk', git: 'git@github.com:animoto/sauce_whisk'
