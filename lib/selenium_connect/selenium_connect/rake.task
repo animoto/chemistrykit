@@ -1,0 +1,7 @@
+require 'selenium/rake/server_task'
+Selenium::Rake::ServerTask.new(:server) do |t|
+t.jar = '/Users/ali/Documents/animoto/source/animoto_stack/applications/selenium-connect/lib/selenium_connect/../../bin/selenium-server-standalone-2.53.1.jar'
+t.background
+t.log = false
+t.port = 4444
+end
