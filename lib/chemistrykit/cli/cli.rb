@@ -295,6 +295,16 @@ module ChemistryKit
               @driver.get(@config.basic_auth.https_url) if @config.basic_auth.https?
             end
 
+            begin
+              @driver.get(@config.basic_auth.https_url + '/business') if @config.basic_auth.https?
+              @driver.execute_script "window.scrollTo(0, document.body.scrollHeight)"
+              sleep 1
+              @driver.find_element({ css: '.leadinModal-close'}).click
+              sleep 1
+            rescue Selenium::WebDriver::Error::NoSuchElementError
+              log.error("NB!!!!!! Ckit errored trying to close hubspot popup. See this code in #{__FILE__}")
+            end
+
             if config.split_testing
               ChemistryKit::SplitTesting::ProviderFactory.build(config.split_testing).split(@driver)
             end
