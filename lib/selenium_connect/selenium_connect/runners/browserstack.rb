@@ -25,6 +25,9 @@ class SeleniumConnect
       def init_browser
         config.browserstack_opts[:'browserstack.debug'] = 'true'
         config.browserstack_opts[:'browserstack.video'] = 'true'
+	# possibly temp? fix to make detecting window handles not fail
+	# I don't know what this does, it is not documented
+	config.browserstack_opts[:'browserstack.autoWait'] = 0
         config.browserstack_opts[:resolution]           = '1920x1080'
         config.browserstack_opts[:'browserstack.idleTimeout'] = 300000
         config.browserstack_opts[:project] = 'TSW'
