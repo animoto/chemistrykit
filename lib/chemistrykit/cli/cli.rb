@@ -186,7 +186,7 @@ module ChemistryKit
             bs_local_args = {
                 "key" => sc_config[:browserstack_api_key],
                 'forcelocal' => 'true',
-                'localIdentifier' => Time.now.to_f.to_s
+                'forceproxy' => 'true'
             }
 
             #starts the Local instance with the required arguments
