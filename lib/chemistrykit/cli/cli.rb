@@ -293,10 +293,11 @@ module ChemistryKit
             if @config.basic_auth
               @driver.get(@config.basic_auth.http_url) if @config.basic_auth.http?
               @driver.get(@config.basic_auth.https_url) if @config.basic_auth.https?
+              @driver.get(@config.basic_auth.https_url + '/business') if @config.basic_auth.https?
+
             end
 
             begin
-              @driver.get(@config.basic_auth.https_url + '/business') if @config.basic_auth.https?
               @driver.execute_script "window.scrollTo(0, document.body.scrollHeight)"
               sleep 1
               @driver.find_element({ css: '.leadinModal-close'}).click
