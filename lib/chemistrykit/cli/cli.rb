@@ -188,7 +188,7 @@ module ChemistryKit
                 'forcelocal' => 'true',
                 'localIdentifier' => Time.now.to_f
             }
-            
+
             #starts the Local instance with the required arguments
             bs_local.start(bs_local_args)
 
