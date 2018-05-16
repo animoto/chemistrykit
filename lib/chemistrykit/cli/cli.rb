@@ -183,8 +183,12 @@ module ChemistryKit
 
             #creates an instance of Local
             bs_local = BrowserStack::Local.new
-            bs_local_args = { "key" => sc_config[:browserstack_api_key] }
-
+            bs_local_args = {
+                "key" => sc_config[:browserstack_api_key],
+                'forcelocal' => 'true',
+                'localIdentifier' => Time.now.to_f
+            }
+            
             #starts the Local instance with the required arguments
             bs_local.start(bs_local_args)
 
