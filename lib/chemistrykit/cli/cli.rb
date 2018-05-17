@@ -136,13 +136,13 @@ module ChemistryKit
             # Determine binary to run based on OS (Mac vs. Linux)
             host_os = RbConfig::CONFIG['host_os']
             sc_bin_path = case host_os
-              when /darwin|mac os/
-                local_path + '/../../../bin/sc-mac'
-              when /linux/
-                local_path + '/../../../bin/sc-linux'
-              else
-                raise "incompatible os: #{host_os.inspect}"
-            end
+                          when /darwin|mac os/
+                            local_path + '/../../../bin/sc-mac'
+                          when /linux/
+                            local_path + '/../../../bin/sc-linux'
+                          else
+                            raise "incompatible os: #{host_os.inspect}"
+                          end
 
             # Attempt to sauce connect. 3 retries
             retries = 0
@@ -178,7 +178,8 @@ module ChemistryKit
             sauce_connect
           end
         elsif sc_config[:browserstack_opts]
-          if sc_config[:browserstack_opts][:tunnel]
+          tunnel_opts = sc_config[:browserstack_opts][:tunnel]
+          if tunnel_opts
             require 'browserstack/local'
 
             #creates an instance of Local
@@ -188,6 +189,9 @@ module ChemistryKit
                 'forcelocal' => 'true',
                 'forceproxy' => 'true'
             }
+            if tunnel_opts.class == Hash
+              bs_local_args.merge!(tunnel_opts)
+            end
 
             #starts the Local instance with the required arguments
             bs_local.start(bs_local_args)
