@@ -30,6 +30,8 @@ require 'rspec/logging_helper'
 
 require 'fileutils'
 require 'rbconfig'
+require 'securerandom'
+
 
 module ChemistryKit
   module CLI
@@ -67,21 +69,24 @@ module ChemistryKit
         setup_tags(options['tag'])
 
         # open a tunnel if sauce connect is specified
-        tunnel_id = tunnel(config)
+        tunnel_id = SecureRandom.uuid
+        tunnel_inst = tunnel(config, tunnel_id)
+        puts "opened #{tunnel_inst}"
 
         # configure rspec
         rspec_config(config)
 
         # based on concurrency parameter run tests
         if config.concurrency > 1
-	        config.selenium_connect[:browserstack_opts][:build] = "TSW #{Time.now}" unless config.selenium_connect[:browserstack_opts].nil?
+          config.selenium_connect[:browserstack_opts][:build] = "TSW #{Time.now}" unless config.selenium_connect[:browserstack_opts].nil?
           exit_code = run_parallel beakers, config.concurrency
         else
           exit_code = run_rspec beakers
         end
 
         # close tunnel if sauce connect is specified
-        kill_tunnel(tunnel_id) unless tunnel_id.nil?
+        puts "Killing #{tunnel_inst}"
+        kill_tunnel(tunnel_inst) unless tunnel_inst.nil?
 
         process_html
         exit_code
@@ -127,8 +132,8 @@ module ChemistryKit
         end unless selected_tags.nil?
       end
 
-      def tunnel(config)
-        sc_config = config.selenium_connect.dup
+      def tunnel(config, tunnel_id = nil)
+        sc_config = config.selenium_connect
         if sc_config[:sauce_opts]
           if sc_config[:sauce_opts][:tunnel]
             local_path = File.join(File.dirname(File.expand_path(__FILE__)))
@@ -187,11 +192,17 @@ module ChemistryKit
             bs_local_args = {
                 "key" => sc_config[:browserstack_api_key],
                 'forcelocal' => 'true',
-                'forceproxy' => 'true'
+                'forceproxy' => 'true',
+
             }
             if tunnel_opts.class == Hash
               bs_local_args.merge!(tunnel_opts)
               ENV['RENDER_SERVICE_PROXY'] = "http://#{tunnel_opts['-local-proxy-host']}:#{'-local-proxy-port'}"
+            end
+
+            unless tunnel_id.nil?
+              bs_local_args['localIdentifier'] = tunnel_id
+              sc_config[:browserstack_opts][:'browserstack.localIdentifier'] = tunnel_id
             end
 
             #starts the Local instance with the required arguments
@@ -204,13 +215,13 @@ module ChemistryKit
         end
       end
 
-      def kill_tunnel(tunnel_id)
-        if tunnel_id.class == Fixnum
-          puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_id}"
-          Process.kill("SIGINT", tunnel_id)
+      def kill_tunnel(tunnel_inst)
+        if tunnel_inst.class == Fixnum
+          puts "KILLING SAUCE_CONNECT TUNNEL #{tunnel_inst}"
+          Process.kill("SIGINT", tunnel_inst)
         else
-          # for now if browserstack, tunnel_id is actually the bs tunnel instance
-          tunnel_id.stop
+          # for now if browserstack, tunnel is actually the bs tunnel instance
+          tunnel_inst.stop
         end
       end
 
