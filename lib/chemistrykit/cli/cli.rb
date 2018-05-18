@@ -191,6 +191,7 @@ module ChemistryKit
             }
             if tunnel_opts.class == Hash
               bs_local_args.merge!(tunnel_opts)
+              ENV['RENDER_SERVICE_PROXY'] = "http://#{tunnel_opts['-local-proxy-host']}:#{'-local-proxy-port'}"
             end
 
             #starts the Local instance with the required arguments
