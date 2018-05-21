@@ -197,7 +197,7 @@ module ChemistryKit
             }
             if tunnel_opts.class == Hash
               bs_local_args.merge!(tunnel_opts)
-              ENV['RENDER_SERVICE_PROXY'] = "http://#{tunnel_opts['-local-proxy-host']}:#{'-local-proxy-port'}"
+              ENV['RENDER_SERVICE_PROXY'] = "http://#{tunnel_opts['-local-proxy-host'.to_sym]}:#{tunnel_opts['-local-proxy-port'.to_sym]}"
             end
 
             unless tunnel_id.nil?
