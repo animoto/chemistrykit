@@ -192,6 +192,7 @@ module ChemistryKit
             bs_local_args = {
                 "key" => sc_config[:browserstack_api_key],
                 'forcelocal' => 'true',
+                'forceproxy' => 'true',
                 '-parallel-runs' => config.concurrency.to_s
             }
             if tunnel_opts.class == Hash
